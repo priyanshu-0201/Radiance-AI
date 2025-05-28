@@ -9,36 +9,100 @@ const ResultsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<SkinResult | null>(null);
   const [selfieUrl, setSelfieUrl] = useState<string | null>(null);
+  const [loadingStep, setLoadingStep] = useState(1);
   
   useEffect(() => {
-    // Simulate API request delay
-    const timer = setTimeout(() => {
-      const concernFromStorage = sessionStorage.getItem('skinConcern') as SkinConcern || 'acne';
-      const assessmentFromStorage = sessionStorage.getItem('skinAssessment');
-      
-      if (assessmentFromStorage) {
-        const parsedAssessment = JSON.parse(assessmentFromStorage);
-        setSelfieUrl(parsedAssessment.selfieUrl);
-      }
-      
-      setResult(skinResultsData[concernFromStorage]);
-      setLoading(false);
-    }, 2000);
+    // Simulate multi-step analysis process
+    const steps = [
+      { step: 1, delay: 1000 },
+      { step: 2, delay: 2000 },
+      { step: 3, delay: 1500 },
+      { step: 4, delay: 500 }
+    ];
     
-    return () => clearTimeout(timer);
+    steps.forEach(({ step, delay }, index) => {
+      setTimeout(() => {
+        setLoadingStep(step);
+        
+        // On last step, complete the analysis
+        if (index === steps.length - 1) {
+          setTimeout(() => {
+            const concernFromStorage = sessionStorage.getItem('skinConcern') as SkinConcern || 'acne';
+            const assessmentFromStorage = sessionStorage.getItem('skinAssessment');
+            
+            if (assessmentFromStorage) {
+              const parsedAssessment = JSON.parse(assessmentFromStorage);
+              setSelfieUrl(parsedAssessment.selfieUrl);
+            }
+            
+            setResult(skinResultsData[concernFromStorage]);
+            setLoading(false);
+          }, 1000);
+        }
+      }, delay * (index + 1));
+    });
   }, []);
+  
+  const getLoadingMessage = () => {
+    switch (loadingStep) {
+      case 1:
+        return "Processing your image...";
+      case 2:
+        return "Analyzing skin patterns...";
+      case 3:
+        return "Identifying concerns...";
+      case 4:
+        return "Preparing recommendations...";
+      default:
+        return "Analyzing...";
+    }
+  };
   
   if (loading) {
     return (
       <div className="pt-24 pb-20 min-h-screen flex items-center justify-center bg-neutral-50">
-        <div className="text-center">
-          <div className="relative w-24 h-24 mx-auto mb-8">
-            <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-primary-200 border-t-primary-500 animate-spin"></div>
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="relative w-32 h-32 mx-auto mb-8">
+            {/* Outer ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-primary-200 opacity-20"></div>
+            
+            {/* Spinning gradient ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-500 border-r-secondary-500 animate-spin"></div>
+            
+            {/* Progress indicator */}
+            <div className="absolute inset-4 rounded-full bg-white shadow-lg flex items-center justify-center">
+              <div className="text-2xl font-semibold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+                {Math.min(Math.round((loadingStep / 4) * 100), 100)}%
+              </div>
+            </div>
           </div>
-          <h2 className="text-2xl font-semibold mb-4">Analyzing Your Skin...</h2>
-          <p className="text-neutral-600 max-w-md">
-            Our AI is processing your image and information to provide personalized recommendations.
-          </p>
+          
+          <h2 className="text-2xl font-semibold mb-4 bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+            {getLoadingMessage()}
+          </h2>
+          
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((step) => (
+              <div 
+                key={step}
+                className={`flex items-center ${loadingStep >= step ? 'text-primary-500' : 'text-neutral-400'}`}
+              >
+                <div className={`w-4 h-4 rounded-full mr-3 transition-colors duration-300 ${
+                  loadingStep > step ? 'bg-primary-500' : 
+                  loadingStep === step ? 'bg-primary-200 animate-pulse' : 
+                  'bg-neutral-200'
+                }`}></div>
+                <span className={`transition-colors duration-300 ${
+                  loadingStep >= step ? 'text-neutral-800' : 'text-neutral-400'
+                }`}>
+                  {step === 1 && "Image Processing"}
+                  {step === 2 && "Pattern Analysis"}
+                  {step === 3 && "Concern Identification"}
+                  {step === 4 && "Recommendation Generation"}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
