@@ -8,6 +8,7 @@ Offers personalized results based on common skin concerns: acne, dryness, rashes
 Each result includes genuine product recommendations from trusted Indian e-commerce sites like Amazon, Nykaa, and Sephora India, with working links.
 
 **🖥 Website Structure:**
+
 **1. Homepage**
 Hero Section:
 Tagline: “Your Personalized Skin Health Assistant”
